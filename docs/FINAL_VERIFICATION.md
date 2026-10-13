@@ -6,7 +6,7 @@ Verification was run from the repository root on 2026-10-14.
 
 | Check | Result | Notes |
 |---|---|---|
-| `npm test` | Passed 33/33 | Includes strict RCA schema/policy diagnostics, tool-free JSON-mode finalization, accepted-vs-fallback persistence, replay lookahead protection, shared-evaluation selection, incident-group session authorization, prior replay/RCA/cost regressions, and three-role assignment scoping. |
+| `npm test` | Passed 34/34 | Includes strict RCA schema/policy diagnostics, tool-free JSON-mode finalization, accepted-vs-fallback persistence, explicit-only hosted RCA replay gating, replay lookahead protection, shared-evaluation selection, incident-group session authorization, prior replay/RCA/cost regressions, and three-role assignment scoping. |
 | `npm run build` | Passed | API TypeScript and Vite production build completed, including bundled Onest font assets. |
 | Dataset integrity | Passed | 2,000 rows; 100 reports; 20 observations per report; 245 orphan/placeholder owners; 24 negative-credit rows; 1,490 latency rows over 15 seconds; four zero-view rows. SHA-256: `bee8b5a451167aab11add9c6c2fc959f37d0c93b6ebc2560a93254849c8f4d50`. |
 | Cost parity and quality review | Passed | API and tool attribution match direct source-row calculations; Snowflake-credit validity is independent from AWS validity; zero-view ratios are null-safe; Q3 + 1.5×IQR review flags are deterministic and non-destructive. |
@@ -29,6 +29,8 @@ observation.received -> detection.triggered -> incident.detected/updated
 ```
 
 Every detection stores a stable source observation ID and remains queryable even when its incident is grouped. Replayed rows are never presented as a verified chronology. A latency breach is described as a validation finding or supported hypothesis, not as proof of a Snowflake infrastructure failure.
+
+The hosted-provider safety boundary is also verified: a replay configured for NVIDIA creates the incident and alert without creating an RCA job; a subsequent explicit RCA request creates the job and falls back safely when credentials are unavailable.
 
 ## Remaining limitations
 

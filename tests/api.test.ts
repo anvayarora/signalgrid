@@ -17,7 +17,7 @@ import type { RcaResult } from "../apps/api/src/types.js";
 
 process.env.SIGNALGRID_DEMO_AUTH = "true";
 const datasetPath = fileURLToPath(new URL("../data/raw/monitoring.csv", import.meta.url));
-function fixture() { const dir = mkdtempSync(`${tmpdir()}/signalgrid-test-`); const result = createApp({ dbPath: resolve(dir, "signalgrid.db"), datasetPath, autoRca: false }); return { ...result, dir }; }
+function fixture(autoRca = false) { const dir = mkdtempSync(`${tmpdir()}/signalgrid-test-`); const result = createApp({ dbPath: resolve(dir, "signalgrid.db"), datasetPath, autoRca }); return { ...result, dir }; }
 async function listen(app: ReturnType<typeof createApp>["app"]) { const server = app.listen(0); await new Promise<void>(resolveReady => server.once("listening", resolveReady)); const address = server.address(); return { server, base: `http://127.0.0.1:${typeof address === "object" && address ? address.port : 0}` }; }
 async function login(base: string, username: "admin" | "user") { const password = username === "admin" ? "admin123" : "user123"; const response = await fetch(`${base}/api/auth/login`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ username, password }) }); assert.equal(response.status, 200); return (await response.json()) as { token: string; user: { role: string } };
 }
@@ -154,7 +154,7 @@ test("standard users retain read access but every replay and incident mutation i
 test("evaluator demo readiness, subscription handshake, session events, RCA stages, and restart isolation", async () => {
   const previousCadence = process.env.REPLAY_CURATED_CADENCE_MS;
   process.env.REPLAY_CURATED_CADENCE_MS = "250";
-  const { app, store, rca, dir } = fixture(); const { server, base } = await listen(app);
+  const { app, store, rca, dir } = fixture(true); const { server, base } = await listen(app);
   try {
     const admin = await login(base, "admin"); const auth = { authorization: `Bearer ${admin.token}` };
     const readiness = await fetch(`${base}/api/demo/readiness`, { headers: auth }); assert.equal(readiness.status, 200);
@@ -287,6 +287,33 @@ test("RCA validation rejects invented numbers, unknown evidence, and unsupported
   rmSync(app.dir, { recursive: true, force: true });
 });
 
+test("hosted RCA is explicit-only and replay never triggers a blind provider request", async () => {
+  const previousProvider = process.env.RCA_PROVIDER; const previousKey = process.env.NVIDIA_KEY;
+  const dir = mkdtempSync(`${tmpdir()}/signalgrid-test-`);
+  try {
+    process.env.RCA_PROVIDER = "nvidia"; delete process.env.NVIDIA_KEY;
+    const app = createApp({ dbPath: resolve(dir, "signalgrid.db"), datasetPath });
+    app.replay.configure({ mode: "curated", seed: 42 });
+    app.replay.step();
+    const group = app.store.incidentGroups(1)[0];
+    assert.ok(group);
+    assert.equal(app.store.rcaGroupJob(String(group.id)), undefined);
+
+    // An explicit investigation request still follows the normal deterministic
+    // fallback path when the configured provider is unavailable.
+    app.rca.enqueueGroup(String(group.id));
+    await app.rca.whenIdle();
+    const result = app.store.rcaGroupResult(String(group.id));
+    assert.equal(result?.validationOutcome, "provider_failed");
+    assert.equal(result?.attemptedProvider, "nvidia");
+    assert.equal(result?.humanReviewRequired, true);
+  } finally {
+    if (previousProvider === undefined) delete process.env.RCA_PROVIDER; else process.env.RCA_PROVIDER = previousProvider;
+    if (previousKey === undefined) delete process.env.NVIDIA_KEY; else process.env.NVIDIA_KEY = previousKey;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("RCA validator rejects unsupported causal and destructive text in every model field", () => {
   const app = fixture(); app.replay.configure({ mode: "curated", seed: 42 }); app.replay.step();
   const group = app.store.incidentGroups(1)[0]; const packet = buildEvidencePacket(app.store, String(group.id)); assert.ok(packet);
@@ -343,7 +370,7 @@ test("RCA policy serialization is rule-specific and exposes only packet evidence
 
 test("missing NVIDIA inference falls back without delaying the alert", async () => {
   const previous = process.env.RCA_PROVIDER; const previousKey = process.env.NVIDIA_KEY; process.env.RCA_PROVIDER = "nvidia"; delete process.env.NVIDIA_KEY;
-  const app = fixture(); app.replay.configure({ mode: "curated", seed: 42 }); app.replay.step();
+  const app = fixture(true); app.replay.configure({ mode: "curated", seed: 42 }); app.replay.step();
   assert.equal(app.store.stats().incidents, 1); await app.rca.whenIdle(); const group = app.store.incidentGroups(1)[0]; const result = app.store.rcaGroupResult(String(group.id));
   assert.equal(result?.validationOutcome, "provider_failed"); assert.equal(result?.provider, "deterministic"); assert.equal(result?.attemptedProvider, "nvidia"); assert.equal(result?.humanReviewRequired, true);
   if (previous === undefined) delete process.env.RCA_PROVIDER; else process.env.RCA_PROVIDER = previous;

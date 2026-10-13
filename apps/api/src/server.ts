@@ -181,7 +181,12 @@ export function createApp(options: { dbPath?: string; datasetPath?: string; auto
   const store = new Store(options.dbPath ?? dbPath);
   const broker = new EventBroker(store);
   const rca = new RcaManager(store, broker);
-  const replay = new ReplayService(store, broker, rca);
+  // Hosted providers are never invoked as an implicit side effect of replay.
+  // Deterministic RCA remains enabled by default for the local demo; callers
+  // that intentionally orchestrate hosted RCA must opt in with autoRca:true.
+  const requestedProvider = String(process.env.RCA_PROVIDER ?? "deterministic").toLowerCase();
+  const defaultAutoRca = !["nvidia", "ollama"].includes(requestedProvider);
+  const replay = new ReplayService(store, broker, rca, options.autoRca ?? defaultAutoRca);
   const auth = new AuthService();
   const source = options.datasetPath ?? datasetPath;
   if (!existsSync(source)) throw new Error(`Dataset not found: ${source}`);

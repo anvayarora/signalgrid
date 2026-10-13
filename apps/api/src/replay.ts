@@ -32,7 +32,7 @@ export class ReplayService {
   private timers = new Map<string, NodeJS.Timeout>();
   private sessionId: string | null = null;
   private sessionCounter = 0;
-  constructor(private store: Store, private broker: EventBroker, private rca: RcaManager) {
+  constructor(private store: Store, private broker: EventBroker, private rca: RcaManager, private autoRca = true) {
     const existing = store.replaySession();
     // A process restart cannot safely continue loops whose timers no longer
     // exist. Preserve every cursor and require an explicit resume.
@@ -111,7 +111,11 @@ export class ReplayService {
     const observation = this.store.observation(session.order[session.position]); if (!observation) throw new Error(`Replay source row missing: ${session.order[session.position]}`);
     const simulationTimestamp = new Date(Date.UTC(2026, 0, 1, 0, 0, session.position)).toISOString();
     const result = detectObservation(this.store, this.broker, observation, simulationTimestamp, session.id, { emitEvents: realtime, eventMetadata: realtime ? undefined : { historicalEvaluation: true, sourceType: "completed_evaluation" } });
-    for (const incident of result.inserted) this.rca.enqueue(incident);
+    // Deterministic replay may auto-queue RCA for the demo, but hosted
+    // inference is opt-in. This keeps an alert's first SSE event independent
+    // from provider work and prevents replay from silently spending a hosted
+    // RCA budget.
+    if (this.autoRca) for (const incident of result.inserted) this.rca.enqueue(incident);
     const position = session.position + 1; this.store.updateReplaySession(session.id, { position, state: position >= session.total ? "completed" : session.state });
     const progress = { sessionId: session.id, position, total: session.total, observationId: observation.id, reportId: observation.reportId, detections: result.detections, simulationTimestamp, ...(realtime ? {} : { historicalEvaluation: true, sourceType: "completed_evaluation" }) };
     if (realtime) this.broker.publish("replay.progress", progress); else this.broker.record("replay.progress", progress);
