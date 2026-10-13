@@ -292,7 +292,7 @@ test("hosted RCA is explicit-only and replay never triggers a blind provider req
   const dir = mkdtempSync(`${tmpdir()}/signalgrid-test-`);
   try {
     process.env.RCA_PROVIDER = "nvidia"; delete process.env.NVIDIA_KEY;
-    const app = createApp({ dbPath: resolve(dir, "signalgrid.db"), datasetPath });
+    const app = createApp({ dbPath: resolve(dir, "signalgrid.db"), datasetPath, autoRca: true });
     app.replay.configure({ mode: "curated", seed: 42 });
     app.replay.step();
     const group = app.store.incidentGroups(1)[0];
@@ -371,7 +371,7 @@ test("RCA policy serialization is rule-specific and exposes only packet evidence
 test("missing NVIDIA inference falls back without delaying the alert", async () => {
   const previous = process.env.RCA_PROVIDER; const previousKey = process.env.NVIDIA_KEY; process.env.RCA_PROVIDER = "nvidia"; delete process.env.NVIDIA_KEY;
   const app = fixture(true); app.replay.configure({ mode: "curated", seed: 42 }); app.replay.step();
-  assert.equal(app.store.stats().incidents, 1); await app.rca.whenIdle(); const group = app.store.incidentGroups(1)[0]; const result = app.store.rcaGroupResult(String(group.id));
+  assert.equal(app.store.stats().incidents, 1); const group = app.store.incidentGroups(1)[0]; app.rca.enqueueGroup(String(group.id)); await app.rca.whenIdle(); const result = app.store.rcaGroupResult(String(group.id));
   assert.equal(result?.validationOutcome, "provider_failed"); assert.equal(result?.provider, "deterministic"); assert.equal(result?.attemptedProvider, "nvidia"); assert.equal(result?.humanReviewRequired, true);
   if (previous === undefined) delete process.env.RCA_PROVIDER; else process.env.RCA_PROVIDER = previous;
   if (previousKey === undefined) delete process.env.NVIDIA_KEY; else process.env.NVIDIA_KEY = previousKey;
@@ -464,7 +464,9 @@ test("accepted structured NVIDIA RCA persists as AI output while fallback remain
       const groupId = String(app.store.incidentGroups(1)[0]?.id);
       return new Response(JSON.stringify({ choices: [{ finish_reason: "tool_calls", message: { role: "assistant", tool_calls: [{ id: "call-1", type: "function", function: { name: "get_incident_evidence", arguments: JSON.stringify({ incident_group_id: groupId }) } }] } }] }), { status: 200 });
     }) as typeof fetch;
-    app.replay.configure({ mode: "curated", seed: 42 }); app.replay.step(); await app.rca.whenIdle();
+    app.replay.configure({ mode: "curated", seed: 42 }); app.replay.step();
+    const queuedGroup = app.store.incidentGroups(1)[0]; assert.ok(queuedGroup);
+    app.rca.enqueueGroup(String(queuedGroup.id)); await app.rca.whenIdle();
     const group = app.store.incidentGroups(1)[0]; const result = app.store.rcaGroupResult(String(group.id));
     assert.equal(result?.provider, "nvidia"); assert.equal(result?.generatedBy, "ai"); assert.equal(result?.validationOutcome, "verified"); assert.equal(result?.fallbackStatus, "none"); assert.ok((result?.toolTrace.length ?? 0) >= 1); assert.ok((result?.providerRequestCount ?? 0) >= 2);
   } finally {

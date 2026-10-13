@@ -23,10 +23,20 @@ if (process.env.RUN_LIVE_NVIDIA !== "1") {
     result.broker.subscribe({ status() { return this; }, set() { return this; }, flushHeaders() {}, write(chunk) { streamChunks.push(String(chunk)); return true; }, on(event, callback) { if (event === "close") closeStream = callback; return this; } }, prepared.cursor, session.id);
     result.replay.startDemo(session.id, prepared.cursor);
     const deadline = Date.now() + Number(process.env.RCA_TOTAL_TIMEOUT_MS ?? 150000) + 30000;
+    let requestedGroupId = null;
     while (Date.now() < deadline) {
       const firstGroup = result.store.incidentGroups(1)[0];
-      if (firstGroup) {
-        const firstJob = result.store.rcaGroupJob(String(firstGroup.id));
+      if (firstGroup && !requestedGroupId) {
+        // Hosted RCA is an explicit investigation action, never a replay side
+        // effect. The incident/SSE alert exists before this request is made.
+        requestedGroupId = String(firstGroup.id);
+        // Freeze the source prefix before inference so the accepted result is
+        // current rather than correctly marked stale by a moving replay.
+        result.replay.pause();
+        result.rca.enqueueGroup(requestedGroupId);
+      }
+      if (requestedGroupId) {
+        const firstJob = result.store.rcaGroupJob(requestedGroupId);
         if (firstJob?.status === "completed" || firstJob?.status === "insufficient_evidence") break;
       }
       await new Promise(resolveWait => setTimeout(resolveWait, 250));
@@ -34,8 +44,9 @@ if (process.env.RUN_LIVE_NVIDIA !== "1") {
     await result.rca.whenIdle();
     result.replay.pause();
     closeStream?.();
-    const group = result.store.incidentGroups(1)[0];
-    const groupId = group ? String(group.id) : null;
+    const fallbackGroup = result.store.incidentGroups(1)[0];
+    const groupId = requestedGroupId ?? (fallbackGroup ? String(fallbackGroup.id) : null);
+    const group = groupId ? result.store.incidentGroup(groupId) : null;
     const job = groupId ? result.store.rcaGroupJob(groupId) : null;
     const rca = groupId ? result.store.rcaGroupResult(groupId) : null;
     const events = result.store.eventsSince(before, 1000).map(event => String(event.event_type));

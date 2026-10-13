@@ -159,7 +159,11 @@ export class RcaManager {
   private queued = new Set<string>();
   constructor(private store: Store, private broker: EventBroker) {
     this.store.markRunningRcaJobsPending();
-    for (const job of this.store.pendingRcaGroups()) this.enqueueGroup(job.groupId);
+    // Never resume a hosted job implicitly after a process restart. A queued
+    // NVIDIA/Ollama job represents an explicit user request and must be
+    // retried explicitly; deterministic jobs remain safe to resume locally.
+    const provider = String(process.env.RCA_PROVIDER ?? "deterministic").toLowerCase();
+    if (!["nvidia", "ollama"].includes(provider)) for (const job of this.store.pendingRcaGroups()) this.enqueueGroup(job.groupId);
   }
 
   enqueue(incident: Incident) { if (incident.groupId) this.enqueueGroup(incident.groupId); }
