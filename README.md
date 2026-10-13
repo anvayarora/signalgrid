@@ -34,8 +34,8 @@ The experience is designed to be useful at a glance and trustworthy under inspec
 - resilient sessions, SSE notifications, and a safe deterministic fallback.
 
 <p align="center">
-  <img src="docs/screenshots/dashboard-light-overview.png" alt="SignalGrid overview" width="49%" />
-  <img src="docs/screenshots/reports-paginated-fixed.png" alt="SignalGrid reports workspace" width="49%" />
+  <img src="docs/screenshots/overview-premium-final1" alt="SignalGrid overview" width="49%" />
+  <img src="docs/screenshots/reports1.png" alt="SignalGrid reports workspace" width="49%" />
 </p>
 
 ## Run locally
@@ -107,7 +107,7 @@ Review valid and excluded rows, zero-view handling, Snowflake credits per view, 
 
 <p align="center">
   <img src="docs/screenshots/signin-light-final.png" alt="SignalGrid sign-in" width="49%" />
-  <img src="docs/screenshots/dashboard-light-costs.png" alt="SignalGrid costs workspace" width="49%" />
+  <img src="docs/screenshots/costs1.png" alt="SignalGrid costs workspace" width="49%" />
 </p>
 
 ## Source and project map
