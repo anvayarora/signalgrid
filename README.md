@@ -1,7 +1,7 @@
 # SignalGrid
 
 <p align="center">
-  <img src="apps/web/public/assets/signalgrid-logo.svg" alt="SignalGrid" width="200" />
+  <img src="apps/web/public/assets/signalgrid-logo.svg" alt="SignalGrid" width="100" />
 </p>
 
 <p align="center">
