@@ -34,7 +34,7 @@ The experience is designed to be useful at a glance and trustworthy under inspec
 - resilient sessions, SSE notifications, and a safe deterministic fallback.
 
 <p align="center">
-  <img src="docs/screenshots/overview-premium-final.png" alt="SignalGrid overview" width="49%" />
+  <img src="docs/screenshots/overview-premium-final1.png" alt="SignalGrid overview" width="49%" />
   <img src="docs/screenshots/reports-paginated-fixed.png" alt="SignalGrid reports workspace" width="49%" />
 </p>
 
