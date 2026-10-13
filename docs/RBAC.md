@@ -38,4 +38,4 @@ Clients obtain a short-lived ticket from `POST /api/events/ticket`, then connect
 
 ## Verification
 
-The API regression suite covers legacy role normalization, user/analyst assignment filtering, zero-assignment replay denial, private-session isolation, restricted status projections, unauthorized mutations and session-filtered recovery. See `tests/api.test.ts`, `docs/API.md` and `docs/test-verification.md`.
+The API regression suite covers legacy role normalization, user/analyst assignment filtering, zero-assignment replay denial, private-session isolation, restricted status projections, unauthorized mutations and session-filtered recovery. See `tests/api.test.ts`, `docs/API.md` and `docs/FINAL_VERIFICATION.md`.

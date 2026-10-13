@@ -1,7 +1,7 @@
 # SignalGrid
 
 <p align="center">
-  <img src="apps/web/public/assets/signalgrid_analytics_logo.png" alt="SignalGrid" width="420" />
+  <img src="apps/web/public/assets/signalgrid-logo.svg" alt="SignalGrid" width="320" />
 </p>
 
 <p align="center">
@@ -34,7 +34,7 @@ The experience is designed to be useful at a glance and trustworthy under inspec
 - resilient sessions, SSE notifications, and a safe deterministic fallback.
 
 <p align="center">
-  <img src="docs/screenshots/overview-premium-final1.png" alt="SignalGrid overview" width="49%" />
+  <img src="docs/screenshots/dashboard-light-overview.png" alt="SignalGrid overview" width="49%" />
   <img src="docs/screenshots/reports-paginated-fixed.png" alt="SignalGrid reports workspace" width="49%" />
 </p>
 
@@ -45,8 +45,8 @@ Requirements: Node.js 22 or newer.
 ```bash
 git clone https://github.com/anvayarora/signalgrid.git
 cd signalgrid
-npm install
-cp .env.public.example .env
+npm ci
+cp .env.example .env
 npm run dev
 ```
 
@@ -69,7 +69,7 @@ The server serves the built frontend and API together at **http://localhost:4000
 
 ## Demo access
 
-Demo authentication is enabled by `.env.public.example` for local use only:
+Demo authentication is enabled by the sanitized local template for local use only:
 
 | Account | Username | Password | Workspace |
 | --- | --- | --- | --- |
@@ -77,7 +77,7 @@ Demo authentication is enabled by `.env.public.example` for local use only:
 | Owner | `user` | `user123` | Assigned reports, alerts, investigations, and costs |
 | Analyst | `analyst` | `analyst123` | Assigned monitoring and report-level financial evidence |
 
-The credentials are intentionally local-demo credentials. Use a private environment file with strong passwords for any shared or hosted environment. Never publish `.env.example`.
+The credentials are intentionally local-demo credentials. Use a private environment file with strong passwords for any shared or hosted environment. Never publish private environment files or API keys.
 
 ## What you can explore
 
@@ -92,6 +92,10 @@ Search and filter the preserved records, move through compact pages, and open a 
 ### Investigations
 
 Open an alert from the notification bell or from its table row. The investigation keeps measured facts separate from policy-approved hypotheses, safe diagnostic checks, missing evidence, provider status, and fallback state. Optional NVIDIA analysis stays behind the authenticated API and never exposes a private key in the browser.
+
+### Optional AI-driven RCA
+
+Deterministic, evidence-backed RCA works without an external provider. If you want the optional AI-driven analysis, create an API key in [NVIDIA Build](https://build.nvidia.com/), add it as `NVIDIA_KEY` in a private environment file, and select a Nemotron model such as `nvidia/nemotron-3.5-lightning-30b-a3b` with `NVIDIA_MODEL`. Keep the key out of Git and run an investigation explicitly from an authenticated incident; replay never calls NVIDIA automatically.
 
 ### Replay
 
@@ -121,16 +125,17 @@ docs/                     Product, usage, data-quality, and verification notes
 ```bash
 npm test
 npm run build
+npm start
 ```
 
-The current regression suite covers authentication, role and session scoping, replay lifecycle, SSE recovery, deterministic detection, report ownership, cost aggregation, RCA tool-call ordering, strict controlled output validation, fallback behavior, and the two replay/incident authorization edge cases.
+The current regression suite covers authentication, three-role and session scoping, replay lifecycle, SSE recovery, deterministic detection, report ownership, cost aggregation, RCA tool-call ordering, strict controlled output validation, fallback behavior, and replay/incident authorization boundaries. A clean checkout requires no NVIDIA key or Snowflake account.
 
-The hosted NVIDIA acceptance path is intentionally separate from the regular suite. It requires a private `NVIDIA_KEY`; without one, SignalGrid remains fully usable with deterministic evidence-backed investigations and clearly labeled fallback state.
+The optional hosted NVIDIA acceptance path is intentionally separate from the regular suite. It requires a private `NVIDIA_KEY`; without one, SignalGrid remains fully usable with deterministic evidence-backed investigations and clearly labeled fallback state. The Snowflake scripts are statically reviewed and runnable reference SQL; live cloud execution is not claimed.
 
 ## Data notes
 
-The included CSV is a preserved demonstration dataset. It contains repeated observations without reliable event timestamps, so the interface does not present derived costs as a verified monthly bill or claim a live cloud-account connection. The Snowflake scripts document the supported attribution path and the limits of the available source data.
+The included CSV is a preserved demonstration dataset. It contains repeated observations without reliable event timestamps, so the interface does not present derived costs as a verified monthly bill or claim a live cloud-account connection. The Snowflake suite documents source-backed attribution, a clearly synthetic query-history fixture, and the limits of the available source data. See [the Snowflake execution guide](scripts/snowflake/README.md).
 
 ## License
 
-This repository is provided as a demonstration project. Add the license and contribution policy appropriate for your intended distribution before publishing it as an open-source package.
+This repository is provided as a demonstration project. No open-source license is granted by this repository.

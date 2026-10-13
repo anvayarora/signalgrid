@@ -2,12 +2,13 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 // Configuration is intentionally tiny and dependency-free. Values already supplied by
-// the process always win; the local .env file is only a convenience for development.
+// the process always win; local env files are only a convenience for development.
 const root = resolve(process.env.INIT_CWD ?? process.cwd());
 const explicitlyConfigured = process.env.SIGNALGRID_ENV_FILE?.trim();
-// An explicit private file or local `.env` always wins. When neither exists,
-// use the checked-in sanitized evaluator template so a fresh local checkout
-// has the documented admin/admin123 and user/user123 demo accounts available.
+// An explicit private file or local `.env` always wins. The checked-in
+// `.env.example` is a copyable template, never an implicit secret source.
+// Keep the old public-template name as a compatibility fallback for older
+// working copies that have not yet been refreshed.
 const candidates = [explicitlyConfigured ? resolve(root, explicitlyConfigured) : null, resolve(root, ".env"), resolve(root, ".env.public.example"), resolve(root, "../../.env")].filter((path): path is string => Boolean(path));
 const envPath = candidates.find(existsSync);
 if (envPath) {

@@ -31,3 +31,5 @@ The response includes the method, flagged report IDs, measured ratios, valid obs
 ## Scope and reconciliation
 
 `/api/costs`, report detail and completed/replay-scoped views apply the same authorized observation set before calculating summaries. The five Snowflake SQL scripts in `scripts/snowflake/` preserve the corresponding staged-data, quality, attribution, validation and `ACCOUNT_USAGE` reference methodology. Live Snowflake execution remains explicitly unverified.
+
+The additional `scripts/snowflake/03_simulated_query_fixture.sql` file provides six fixed, report-labelled query rows so the simulated query-history view is non-empty on a fresh worksheet run. They are synthetic inputs with explicit provenance, not recovered production query history. The ACCOUNT_USAGE reference keeps `CREDITS_ATTRIBUTED_COMPUTE` and `CREDITS_USED_QUERY_ACCELERATION` separate and leaves warehouse idle/unattributed and cloud-services categories visible rather than forcing them into report costs.

@@ -4,8 +4,8 @@ SignalGrid is a local-first monitoring demonstration built around the supplied 2
 
 ## Two-minute walkthrough
 
-1. Install Node.js 22+ dependencies: `npm install`.
-2. For a fresh local checkout, the API automatically falls back to the sanitized `.env.public.example` template when no private `.env` is present. Alternatively, copy `.env.public.example` to a private environment file or set `SIGNALGRID_ENV_FILE` explicitly. The public template enables isolated demo authentication and deterministic RCA.
+1. Install Node.js 22+ dependencies: `npm ci`.
+2. For a fresh local checkout, copy the sanitized `.env.example` to `.env`, or set `SIGNALGRID_ENV_FILE` explicitly to a private environment file. The public template enables isolated demo authentication and deterministic RCA; it is never treated as an implicit private-secret source.
 3. Build and start the production-like server:
 
    ```bash
@@ -25,7 +25,7 @@ Choose **Full dataset** when comprehensive replay is required. It processes all 
 
 ## Optional NVIDIA verification
 
-The application does not require an inference provider for detection or alert delivery. With a private environment containing `NVIDIA_KEY`, run:
+The application does not require an inference provider for detection or alert delivery. For optional AI-driven RCA, create a key at [NVIDIA Build](https://build.nvidia.com/), put it in a private environment as `NVIDIA_KEY`, select a Nemotron model with `NVIDIA_MODEL`, and run:
 
 ```bash
 npm run nvidia:smoke
@@ -37,4 +37,4 @@ This performs a real two-request structured tool-call cycle and prints metadata 
 
 Run `npm test` for the API/replay/RCA/RBAC suite and `npm run build` for both TypeScript applications. The Snowflake-compatible scripts are in `scripts/snowflake/`; execute them in order in a Snowflake worksheet. `scripts/snowflake/05_account_usage_reference.sql` is an optional reference path and requires an actual Snowflake `ACCOUNT_USAGE` environment; local tests do not claim cloud execution.
 
-See [FINAL_VERIFICATION.md](FINAL_VERIFICATION.md) for exact observed results and [INTERVIEW_TECHNICAL_NOTES.md](INTERVIEW_TECHNICAL_NOTES.md) for design rationale and limitations.
+See [FINAL_VERIFICATION.md](FINAL_VERIFICATION.md) for exact observed results and [COST_METHODOLOGY.md](COST_METHODOLOGY.md) plus [the Snowflake execution guide](../scripts/snowflake/README.md) for attribution rationale and limitations.
