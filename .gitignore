@@ -1,0 +1,13 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.env.*
+# Credential-bearing environment examples stay local and are not published.
+!.env.public.example
+*.db
+*.db-shm
+*.db-wal
+.DS_Store
+coverage/
+SignalGrid-review-sanitized.zip
