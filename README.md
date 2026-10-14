@@ -42,6 +42,8 @@ The experience is designed to be useful at a glance and trustworthy under inspec
 
 Requirements: Node.js 22 or newer.
 
+Environment setup is required before starting the application. The checked-in `.env.example` is a sanitized template; copy it to a private `.env` for every local or evaluator checkout, and never commit that private file:
+
 ```bash
 git clone https://github.com/anvayarora/signalgrid.git
 cd signalgrid
@@ -49,6 +51,8 @@ npm ci
 cp .env.example .env
 npm run dev
 ```
+
+Keep `SIGNALGRID_DEMO_AUTH=true` in `.env` for the local demonstration accounts below. For any shared, hosted, or assessment environment, set `SIGNALGRID_DEMO_AUTH=false` and replace the administrator, owner, and analyst password placeholders with strong private values. If the environment file lives outside the repository, set `SIGNALGRID_ENV_FILE` to its path before starting the API. The application will not require an NVIDIA key or a Snowflake account for the standard deterministic experience.
 
 Open **http://localhost:5173** on the same computer or device. To view it from another device on the same network, start the frontend bound to your local interface and open the displayed network URL:
 
@@ -69,7 +73,7 @@ The server serves the built frontend and API together at **http://localhost:4000
 
 ## Demo access
 
-Demo authentication is enabled by the sanitized local template for local use only:
+Demo authentication is enabled by the sanitized local template for local use only. A bare local checkout also enables these accounts when no private password variables are configured, so `npm run dev` remains recoverable even before creating `.env`; copying and configuring `.env` is still the required setup for a repeatable run:
 
 | Account | Username | Password | Workspace |
 | --- | --- | --- | --- |
@@ -78,6 +82,8 @@ Demo authentication is enabled by the sanitized local template for local use onl
 | Analyst | `analyst` | `analyst123` | Assigned monitoring and report-level financial evidence |
 
 The credentials are intentionally local-demo credentials. Use a private environment file with strong passwords for any shared or hosted environment. Never publish private environment files or API keys.
+
+For a private deployment, set `SIGNALGRID_DEMO_AUTH=false` and provide the private administrator, owner, and analyst passwords explicitly.
 
 ## What you can explore
 

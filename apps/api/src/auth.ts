@@ -31,7 +31,18 @@ export class AuthService {
     const configuredTicketTtl = Number(options.ticketTtlMs ?? process.env.SSE_TICKET_TTL_MS ?? 60_000);
     this.ttlMs = Number.isFinite(configuredTtl) && configuredTtl > 0 ? configuredTtl : 3_600_000;
     this.ticketTtlMs = Number.isFinite(configuredTicketTtl) && configuredTicketTtl > 0 ? configuredTicketTtl : 60_000;
-    this.demoAuthEnabled = options.demoAuthEnabled ?? String(process.env.SIGNALGRID_DEMO_AUTH ?? "false").toLowerCase() === "true";
+    const configuredDemoAuth = process.env.SIGNALGRID_DEMO_AUTH?.trim().toLowerCase();
+    const privatePasswordsConfigured = Boolean(
+      process.env.SIGNALGRID_ADMIN_PASSWORD ||
+      process.env.SIGNALGRID_VIEWER_PASSWORD ||
+      process.env.SIGNALGRID_ANALYST_PASSWORD,
+    );
+    // A bare local checkout should be immediately usable with the documented
+    // demo accounts. Production/private deployments must opt out explicitly,
+    // or provide private passwords, so predictable demo credentials are never
+    // enabled accidentally when a real password configuration is present.
+    const defaultDemoAuth = configuredDemoAuth === undefined ? !privatePasswordsConfigured : configuredDemoAuth === "true";
+    this.demoAuthEnabled = options.demoAuthEnabled ?? defaultDemoAuth;
   }
 
   isDemoAuthEnabled() { return this.demoAuthEnabled; }

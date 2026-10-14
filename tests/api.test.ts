@@ -115,6 +115,36 @@ test("demo accounts are isolated, sessions expire, and logout revokes SSE ticket
   } finally { server.close(); rmSync(dir, { recursive: true, force: true }); }
 });
 
+test("bare local auth enables documented demo accounts without overriding private credentials", () => {
+  const previousDemo = process.env.SIGNALGRID_DEMO_AUTH;
+  const previousAdmin = process.env.SIGNALGRID_ADMIN_PASSWORD;
+  const previousViewer = process.env.SIGNALGRID_VIEWER_PASSWORD;
+  const previousAnalyst = process.env.SIGNALGRID_ANALYST_PASSWORD;
+  try {
+    delete process.env.SIGNALGRID_DEMO_AUTH;
+    delete process.env.SIGNALGRID_ADMIN_PASSWORD;
+    delete process.env.SIGNALGRID_VIEWER_PASSWORD;
+    delete process.env.SIGNALGRID_ANALYST_PASSWORD;
+
+    const local = new AuthService();
+    assert.equal(local.isDemoAuthEnabled(), true);
+    assert.equal(local.login("admin", "admin123")?.user.role, "ADMIN");
+    assert.equal(local.login("user", "user123")?.user.role, "OWNER");
+    assert.equal(local.login("analyst", "analyst123")?.user.role, "ANALYST");
+
+    process.env.SIGNALGRID_ADMIN_PASSWORD = "private-admin";
+    const privateConfig = new AuthService();
+    assert.equal(privateConfig.isDemoAuthEnabled(), false);
+    assert.equal(privateConfig.login("admin", "admin123"), null);
+    assert.equal(privateConfig.login("admin", "private-admin")?.user.role, "ADMIN");
+  } finally {
+    if (previousDemo === undefined) delete process.env.SIGNALGRID_DEMO_AUTH; else process.env.SIGNALGRID_DEMO_AUTH = previousDemo;
+    if (previousAdmin === undefined) delete process.env.SIGNALGRID_ADMIN_PASSWORD; else process.env.SIGNALGRID_ADMIN_PASSWORD = previousAdmin;
+    if (previousViewer === undefined) delete process.env.SIGNALGRID_VIEWER_PASSWORD; else process.env.SIGNALGRID_VIEWER_PASSWORD = previousViewer;
+    if (previousAnalyst === undefined) delete process.env.SIGNALGRID_ANALYST_PASSWORD; else process.env.SIGNALGRID_ANALYST_PASSWORD = previousAnalyst;
+  }
+});
+
 test("established SSE streams close on logout and session expiry", async () => {
   const previousTtl = process.env.AUTH_TOKEN_TTL_MS; const previousHeartbeat = process.env.SSE_HEARTBEAT_MS;
   process.env.AUTH_TOKEN_TTL_MS = "35"; process.env.SSE_HEARTBEAT_MS = "1000";

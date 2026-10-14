@@ -2,9 +2,14 @@
   "name": "signalgrid",
   "private": true,
   "version": "1.0.0",
-  "engines": { "node": ">=22.0.0" },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "description": "SignalGrid operational intelligence case-study application",
-  "workspaces": ["apps/api", "apps/web"],
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
   "scripts": {
     "install:all": "npm install --workspaces",
     "dev": "concurrently -k \"npm run dev -w apps/api\" \"npm run dev -w apps/web\"",
@@ -16,6 +21,6 @@
     "nvidia:integration": "node --import tsx scripts/nvidia-real-integration.mjs"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.2.5"
   }
 }
