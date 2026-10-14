@@ -37,6 +37,7 @@ Observation ratios are calculated only when the denominator is positive. Report 
 - Repeated observations are not verified monthly totals and are never silently summed into a bill.
 - Outlier flags use a deterministic Q3 + 1.5×IQR review rule; they are review signals, not confirmed billing errors.
 - The synthetic query fixture is illustrative only. Its fixed timestamps, warehouse name, query IDs, and credit amounts are not production measurements.
+- Its `ACTIVE_VIEW_COUNT` values are intentionally non-overlapping per-query counts, so the simulated attribution view may add them for the fixture denominator. Do not use that additive denominator for production snapshots or distinct-view metrics without separately proving that the counts are disjoint.
 
 ## Live Snowflake requirements
 

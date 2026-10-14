@@ -31,6 +31,9 @@ GROUP BY REPORT_ID;
 
 -- Explicitly simulated ACCOUNT_USAGE-style path. Attribution uses a supplied
 -- REPORT_ID label; if query logs lack that label, no defensible attribution exists.
+-- In this synthetic fixture, ACTIVE_VIEW_COUNT is intentionally additive because
+-- each row represents a non-overlapping per-query view count. That assumption
+-- must not be generalized to production snapshots or distinct-view metrics.
 CREATE OR REPLACE VIEW SIGNALGRID_SIMULATED_ACCOUNT_USAGE_ATTRIBUTION AS
 SELECT
   REPORT_ID,
